@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index.html</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Fonts - Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            /* Set font priority:
+               - First, use BiauKai (標楷體) or DFKai-SB for Traditional Chinese.
+               - Second, use Times New Roman for English.
+               - Third, use Source Han Sans TC for other Chinese characters.
+               - Finally, fall back to a generic sans-serif font.
+            */
+            font-family: 'BiauKai', 'DFKai-SB', 'Times New Roman', 'Source Han Sans TC', 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .result-box {
+            min-height: 200px;
+        }
+        .character-card {
+            border-left: 5px solid #3b82f6;
+        }
+        /* Simple focus effect for the input field */
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main container -->
+    <div class="container mx-auto bg-white shadow-xl rounded-2xl p-6 sm:p-10 transition-all duration-300">
+        
+        <!-- Website title -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-2 tracking-wide">字集全庫</h1>
+            <p class="text-lg text-gray-500">一個簡潔的中文字典</p>
+        </header>
+
+        <!-- Search section -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 mb-8">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="請輸入一個漢字、注音或部首..." 
+                class="search-input flex-grow w-full px-5 py-3 text-lg rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+            <button 
+                id="searchButton" 
+                class="w-full sm:w-auto px-8 py-3 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transform transition-transform hover:scale-105"
+            >
+                搜尋
+            </button>
+        </div>
+
+        <!-- Search results section -->
+        <div id="resultContainer" class="result-box w-full bg-gray-50 rounded-xl p-6 transition-all duration-300 text-center flex items-center justify-center">
+            <p class="text-gray-500 text-lg">在這裡輸入一個字來查詢。</p>
+        </div>
+
+        <!-- Copyright information -->
+        <footer class="mt-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2025 字集全庫. All rights reserved.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Simulated dictionary data
+        const dictionaryData = {
+            "美": {
+                pinyin: "měi",
+                zhuyin: "ㄇㄟˇ",
+                radical: "羊",
+                strokes: 9,
+                meaning: [
+                    "好的、善的。",
+                    "容貌、姿態漂亮。",
+                    "感到滿意或快樂。"
+                ],
+                phrases: [
+                    "美麗", "美國", "美術", "美味"
+                ]
+            },
+            "家": {
+                pinyin: "jiā",
+                zhuyin: "ㄐㄧㄚ",
+                radical: "宀",
+                strokes: 10,
+                meaning: [
+                    "共同生活的眷屬和他們所住的地方。",
+                    "居住的地方。",
+                    "從事某種學問、藝術或職業者。"
+                ],
+                phrases: [
+                    "家庭", "回家", "作家", "畫家"
+                ]
+            },
+            "愛": {
+                pinyin: "ài",
+                zhuyin: "ㄞˋ",
+                radical: "心",
+                strokes: 13,
+                meaning: [
+                    "對人或事有很深的感情。",
+                    "喜歡，樂於。",
+                    "吝惜或捨不得用某物。"
+                ],
+                phrases: [
+                    "愛心", "愛情", "愛護", "愛惜"
+                ]
+            },
+            "電腦": {
+                pinyin: "diàn nǎo",
+                zhuyin: "ㄉㄧㄢˋ ㄋㄠˇ",
+                radical: "電、腦",
+                strokes: 5,
+                meaning: [
+                    "一種能夠處理大量資訊、執行程式與計算的電子裝置。英文稱為 computer。"
+                ],
+                phrases: [
+                    "筆記型電腦", "桌上型電腦"
+                ]
+            },
+            "書": {
+                pinyin: "shū",
+                zhuyin: "ㄕㄨ",
+                radical: "曰",
+                strokes: 10,
+                meaning: [
+                    "記載文字圖形的著作。",
+                    "書信。",
+                    "寫作、記錄。"
+                ],
+                phrases: [
+                    "讀書", "書本", "教科書"
+                ]
+            },
+            "日": {
+                pinyin: "rì",
+                zhuyin: "ㄖˋ",
+                radical: "日",
+                strokes: 4,
+                meaning: [
+                    "太陽。",
+                    "白天。",
+                    "一天。"
+                ],
+                phrases: [
+                    "日子", "生日", "每日"
+                ]
+            },
+            "早": {
+                pinyin: "zǎo",
+                zhuyin: "ㄗㄠˇ",
+                radical: "日",
+                strokes: 6,
+                meaning: [
+                    "時間在前的。",
+                    "清晨。"
+                ],
+                phrases: [
+                    "早上", "早安", "早餐"
+                ]
+            },
+            "明": {
+                pinyin: "míng",
+                zhuyin: "ㄇㄧㄥˊ",
+                radical: "日",
+                strokes: 8,
+                meaning: [
+                    "光亮。",
+                    "清楚、明白。",
+                    "下一個。"
+                ],
+                phrases: [
+                    "明白", "明天", "光明"
+                ]
+            },
+            "亮": {
+                pinyin: "liàng",
+                zhuyin: "ㄌㄧㄤˋ",
+                radical: "亠",
+                strokes: 9,
+                meaning: [
+                    "光線充足。",
+                    "發光。",
+                    "聲音宏亮。"
+                ],
+                phrases: [
+                    "明亮", "亮光"
+                ]
+            },
+            "花": {
+                pinyin: "huā",
+                zhuyin: "ㄏㄨㄚ",
+                radical: "艹",
+                strokes: 7,
+                meaning: [
+                    "植物的生殖器官，通常顏色鮮豔。",
+                    "華麗的，有花紋的。",
+                    "虛耗、浪費。"
+                ],
+                phrases: [
+                    "花朵", "花費"
+                ]
+            },
+            "草": {
+                pinyin: "cǎo",
+                zhuyin: "ㄘㄠˇ",
+                radical: "艹",
+                strokes: 9,
+                meaning: [
+                    "泛指一切沒有粗大木質莖的植物。",
+                    "粗糙的、雜亂的。",
+                    "草稿。"
+                ],
+                phrases: [
+                    "草地", "雜草"
+                ]
+            },
+            "𪹚": {
+                pinyin: "yàn",
+                zhuyin: "ㄧㄢˋ",
+                radical: "火",
+                strokes: 28,
+                meaning: [
+                    "火光閃耀的樣子。",
+                    "也寫作「爓」。"
+                ],
+                phrases: [
+                    "𪹚熛"
+                ]
+            },
+            "�": {
+                pinyin: "yǎn",
+                zhuyin: "ㄧㄢˇ",
+                radical: "口",
+                strokes: 29,
+                meaning: [
+                    "鳥鳴聲。",
+                    "同「嚈」字。"
+                ],
+                phrases: [
+                    "𰹬𠴔"
+                ]
+            },
+            "𡢁": {
+                pinyin: "jié",
+                zhuyin: "ㄐㄧㄝˊ",
+                radical: "女",
+                strokes: 16,
+                meaning: [
+                    "古代人名用字。",
+                    "形容女子美麗、聰慧。"
+                ],
+                phrases: []
+            }
+        };
+
+        // Get HTML elements
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultContainer = document.getElementById('resultContainer');
+
+        /**
+         * Renders the search results based on the query.
+         * @param {string} query User input string.
+         */
+        function searchDictionary(query) {
+            const lowerCaseQuery = query.toLowerCase().trim();
+            resultContainer.innerHTML = '';
+            
+            // If the query is empty, show a prompt message and return.
+            if (!lowerCaseQuery) {
+                resultContainer.innerHTML = `<p class="text-gray-500 text-lg">在這裡輸入一個字來查詢。</p>`;
+                return;
+            }
+
+            const results = [];
+
+            // Iterate through all characters in the dictionary
+            for (const char in dictionaryData) {
+                const data = dictionaryData[char];
+                
+                // Check for matches
+                // Match by character itself
+                if (char === lowerCaseQuery) {
+                    results.push({ char, ...data });
+                    break; // Exact match, no need to continue searching
+                }
+                // Match by zhuyin (partial match)
+                if (data.zhuyin.includes(lowerCaseQuery)) {
+                    results.push({ char, ...data });
+                }
+                // Match by radical (partial match)
+                if (data.radical && data.radical.includes(lowerCaseQuery)) {
+                    results.push({ char, ...data });
+                }
+            }
+
+            // Display results
+            if (results.length > 0) {
+                if (results.length === 1 && results[0].char === lowerCaseQuery) {
+                    // Display detailed card for a single, exact character match
+                    const characterData = results[0];
+                    const characterCard = document.createElement('div');
+                    characterCard.className = 'character-card bg-white p-6 rounded-lg shadow-md text-left space-y-4';
+                    
+                    const title = document.createElement('h2');
+                    title.className = 'text-4xl sm:text-6xl font-black text-gray-800 mb-2';
+                    title.textContent = characterData.char;
+
+                    const infoList = document.createElement('ul');
+                    infoList.className = 'text-gray-600 text-lg space-y-2';
+                    infoList.innerHTML = `
+                        <li>**拼音**：${characterData.pinyin}</li>
+                        <li>**注音**：${characterData.zhuyin}</li>
+                        <li>**部首**：${characterData.radical}</li>
+                        <li>**筆畫數**：${characterData.strokes}</li>
+                    `;
+
+                    const meaningSection = document.createElement('div');
+                    meaningSection.className = 'space-y-2';
+                    const meaningTitle = document.createElement('h3');
+                    meaningTitle.className = 'text-xl font-bold text-gray-700 border-b pb-1 mb-2';
+                    meaningTitle.textContent = '字義解釋';
+                    meaningSection.appendChild(meaningTitle);
+                    const meaningList = document.createElement('ul');
+                    meaningList.className = 'list-disc list-inside text-gray-700 space-y-1';
+                    characterData.meaning.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        meaningList.appendChild(li);
+                    });
+                    meaningSection.appendChild(meaningList);
+
+                    const phrasesSection = document.createElement('div');
+                    phrasesSection.className = 'space-y-2';
+                    const phrasesTitle = document.createElement('h3');
+                    phrasesTitle.className = 'text-xl font-bold text-gray-700 border-b pb-1 mb-2';
+                    phrasesTitle.textContent = '相關詞語';
+                    phrasesSection.appendChild(phrasesTitle);
+                    const phrasesList = document.createElement('p');
+                    phrasesList.className = 'text-gray-700';
+                    phrasesList.textContent = characterData.phrases.join('、 ');
+                    phrasesSection.appendChild(phrasesList);
+
+                    characterCard.appendChild(title);
+                    characterCard.appendChild(infoList);
+                    characterCard.appendChild(meaningSection);
+                    characterCard.appendChild(phrasesSection);
+
+                    resultContainer.appendChild(characterCard);
+                } else {
+                    // Display a list of matching characters for zhuyin/radical search
+                    const listTitle = document.createElement('h2');
+                    listTitle.className = 'text-2xl font-bold text-gray-800 mb-4';
+                    listTitle.textContent = `找到 ${results.length} 個相關結果：`;
+                    resultContainer.appendChild(listTitle);
+
+                    const resultsGrid = document.createElement('div');
+                    resultsGrid.className = 'grid grid-cols-3 sm:grid-cols-5 gap-4';
+                    
+                    results.forEach(item => {
+                        const charButton = document.createElement('button');
+                        charButton.textContent = item.char;
+                        charButton.className = 'bg-blue-100 text-blue-800 text-2xl font-bold p-4 rounded-lg hover:bg-blue-200 transition-colors';
+                        charButton.addEventListener('click', () => {
+                            // When a list item is clicked, perform an exact search for that character
+                            searchInput.value = item.char;
+                            searchDictionary(item.char);
+                        });
+                        resultsGrid.appendChild(charButton);
+                    });
+                    resultContainer.appendChild(resultsGrid);
+                }
+            } else {
+                // Display not found message
+                resultContainer.innerHTML = `<p class="text-gray-500 text-lg">找不到「${query}」這個字或詞。請試試其他字。</p>`;
+            }
+        }
+
+        // Listen for search button click
+        searchButton.addEventListener('click', () => {
+            searchDictionary(searchInput.value);
+        });
+
+        // Listen for Enter key press
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchDictionary(searchInput.value);
+            }
+        });
+    </script>
+
+</body>
+</html>
